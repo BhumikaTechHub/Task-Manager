@@ -1,0 +1,42 @@
+version: "3.9"
+
+services:
+
+  postgres:
+    image: postgres:16
+
+    container_name: taskmanager-db
+
+    restart: always
+
+    environment:
+      POSTGRES_DB: taskmanagerdb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: p@o34zT$stebw1564elwrq
+
+    ports:
+      - "5432:5432"
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  app:
+    build: .
+
+    container_name: taskmanager-app
+
+    restart: always
+
+    ports:
+      - "8080:8080"
+
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/taskmanagerdb
+      DB_USERNAME: postgres
+      DB_PASSWORD: 405#abywi#15@@janfqj@qii34y65
+
+    depends_on:
+      - postgres
+
+volumes:
+  postgres_data:
