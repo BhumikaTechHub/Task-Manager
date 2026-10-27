@@ -1,0 +1,507 @@
+# Task Manager API
+
+A RESTful Task Management application built with **Java 17, Spring Boot, PostgreSQL, Spring Security, and JWT**. The project demonstrates backend development practices alongside containerization, automated testing, and CI/CD using GitHub Actions.
+
+## Features
+
+- **Task Management:** Create, retrieve, update, and delete tasks.
+- **Authentication:** User registration and login using JWT-based authentication.
+- **Security:** Spring Security with stateless authentication and BCrypt password hashing.
+- **Database:** PostgreSQL with Spring Data JPA and Hibernate.
+- **Validation:** Request validation using Jakarta Validation.
+- **Exception Handling:** Centralized REST API exception handling.
+- **Pagination and Sorting:** Retrieve task records in manageable pages and sort results.
+- **Search:** Search tasks using supported search criteria.
+- **API Documentation:** Interactive API documentation using Swagger/OpenAPI.
+- **Unit Testing:** JUnit 5 and Mockito.
+- **Containerization:** Docker and Docker Compose.
+- **CI/CD:** GitHub Actions workflow for automated builds, tests, and Docker image publishing.
+
+## Tech Stack
+
+| Technology | Purpose |
+|---|---|
+| Java 17 | Backend programming language |
+| Spring Boot | Application framework |
+| Spring MVC | REST API request handling |
+| Spring Security | Authentication and endpoint protection |
+| JWT | Stateless authentication |
+| BCrypt | Password hashing |
+| Spring Data JPA | Database repository abstraction |
+| Hibernate | Object-relational mapping |
+| PostgreSQL | Relational database |
+| Maven Wrapper | Consistent Maven execution |
+| JUnit 5 | Automated testing |
+| Mockito | Mocking dependencies during unit tests |
+| Swagger/OpenAPI | API documentation |
+| Docker | Application containerization |
+| Docker Compose | Multi-container development and deployment |
+| GitHub Actions | CI/CD automation |
+| Docker Hub | Container image registry |
+
+## Architecture
+
+The application follows a layered architecture.
+
+```text
+Client / Postman / Swagger UI
+              |
+              v
+        REST Controllers
+              |
+              v
+         Service Layer
+              |
+              v
+       Repository Layer
+              |
+              v
+          PostgreSQL
+```
+
+Authentication is handled through Spring Security and JWT. Protected requests include a Bearer token in the `Authorization` header.
+
+The containerized architecture consists of separate application and database services:
+
+```text
+GitHub Repository
+       |
+       v
+GitHub Actions
+       |
+       v
+Build and Test
+       |
+       v
+Docker Image
+       |
+       v
+Docker Hub
+       |
+       v
+Docker Compose
+   |          |
+   v          v
+Spring Boot  PostgreSQL
+Container    Container
+```
+
+## Prerequisites
+
+Install the following tools before running the project locally:
+
+- Java Development Kit (JDK) 17
+- Git
+- PostgreSQL, if running without Docker
+- IntelliJ IDEA or another Java IDE (optional)
+- Docker Desktop, if using Docker Compose locally
+
+Maven does not need to be installed separately because the project includes the Maven Wrapper.
+
+## Getting Started
+
+### 1. Clone the repository
+
+```bash
+git clone <YOUR_GITHUB_REPOSITORY_URL>
+cd <YOUR_PROJECT_DIRECTORY>
+```
+
+Replace the placeholders with your actual repository URL and directory name.
+
+### 2. Configure the database
+
+Create a PostgreSQL database:
+
+```sql
+CREATE DATABASE taskmanagerdb;
+```
+
+Configure the database connection and JWT secret through environment variables.
+
+For local development, set these variables in your IDE's run configuration or terminal:
+
+```text
+DB_URL=jdbc:postgresql://localhost:5432/taskmanagerdb
+DB_USERNAME=your_database_username
+DB_PASSWORD=your_database_password
+JWT_SECRET=your_secure_secret
+```
+
+Ensure the PostgreSQL server is running and the credentials are correct.
+
+The application configuration should reference these variables, for example:
+
+```properties
+spring.datasource.url=${DB_URL}
+spring.datasource.username=${DB_USERNAME}
+spring.datasource.password=${DB_PASSWORD}
+
+jwt.secret=${JWT_SECRET}
+```
+
+Use the actual JWT property name configured in your application if it differs from `jwt.secret`.
+
+**Security:** Do not commit database passwords, JWT secrets, private keys, or access tokens to GitHub.
+
+### 3. Run the application locally
+
+On Windows:
+
+```powershell
+.\mvnw.cmd spring-boot:run
+```
+
+On Linux or macOS:
+
+```bash
+chmod +x mvnw
+./mvnw spring-boot:run
+```
+
+The application is configured to use port `8080` unless changed in the application configuration.
+
+Base URL:
+
+```text
+http://localhost:8080
+```
+
+### 4. Build the JAR
+
+Build and verify the project:
+
+```bash
+./mvnw clean verify
+```
+
+On Windows:
+
+```powershell
+.\mvnw.cmd clean verify
+```
+
+The packaged Spring Boot JAR is generated under the `target/` directory if the build succeeds.
+
+Run the packaged JAR using:
+
+```bash
+java -jar target/<GENERATED_JAR_NAME>.jar
+```
+
+Replace the placeholder with the actual JAR filename generated by Maven.
+
+## Running with Docker Compose
+
+Docker Compose can run the Spring Boot application and PostgreSQL as separate services.
+
+### 1. Configure environment variables
+
+Set the database credentials and JWT secret using your local environment or an appropriately configured `.env` file. Ensure the Compose configuration references those values.
+
+For Docker Compose, the application must connect to PostgreSQL using the database service name, for example:
+
+```text
+jdbc:postgresql://postgres:5432/taskmanagerdb
+```
+
+Here, `postgres` must match the PostgreSQL service name in `docker-compose.yml`.
+
+### 2. Build and start the containers
+
+```bash
+docker compose up --build
+```
+
+Run in the background:
+
+```bash
+docker compose up --build -d
+```
+
+View container status:
+
+```bash
+docker compose ps
+```
+
+View logs:
+
+```bash
+docker compose logs -f app
+```
+
+Stop the services:
+
+```bash
+docker compose down
+```
+
+The PostgreSQL volume should be configured in `docker-compose.yml` to preserve database data when containers are recreated. Avoid removing volumes unless you intentionally want to delete the persisted data.
+
+## API Usage
+
+The examples below illustrate the expected REST API interaction pattern. Confirm the exact endpoint paths, request fields, and response formats against your controllers and Swagger documentation.
+
+### Authentication
+
+Register a user:
+
+```http
+POST /auth/register
+Content-Type: application/json
+```
+
+Example request body (adjust to your registration DTO):
+
+```json
+{
+  "name": "Demo User",
+  "email": "demo@example.com",
+  "password": "ChangeThisPassword123!"
+}
+```
+
+Log in:
+
+```http
+POST /auth/login
+Content-Type: application/json
+```
+
+Example request body:
+
+```json
+{
+  "email": "demo@example.com",
+  "password": "ChangeThisPassword123!"
+}
+```
+
+After successful authentication, use the JWT returned by the API for protected endpoints.
+
+### Create a task
+
+```http
+POST /api/tasks
+Authorization: Bearer <JWT_TOKEN>
+Content-Type: application/json
+```
+
+Example request body (adjust to your actual `TaskRequest` fields):
+
+```json
+{
+  "title": "Learn Docker",
+  "description": "Understand Docker networking and volumes",
+  "status": "PENDING",
+  "priority": "HIGH"
+}
+```
+
+### Retrieve tasks
+
+```http
+GET /api/tasks
+Authorization: Bearer <JWT_TOKEN>
+```
+
+### Retrieve a task by ID
+
+```http
+GET /api/tasks/{id}
+Authorization: Bearer <JWT_TOKEN>
+```
+
+### Update a task
+
+```http
+PUT /api/tasks/{id}
+Authorization: Bearer <JWT_TOKEN>
+Content-Type: application/json
+```
+
+Provide the fields expected by your update request DTO.
+
+### Delete a task
+
+```http
+DELETE /api/tasks/{id}
+Authorization: Bearer <JWT_TOKEN>
+```
+
+### Search, pagination, and sorting
+
+If these endpoints and parameters are enabled in your implementation, use the exact paths and query parameters documented by Swagger. For example:
+
+```http
+GET /api/tasks/search?keyword=docker
+GET /api/tasks/page?page=0&size=5
+```
+
+The parameter names and paths above are illustrative and should be checked against the implemented controllers.
+
+## API Documentation
+
+Once the application is running, open the Swagger UI configured by the project.
+
+Common Springdoc paths include:
+
+```text
+http://localhost:8080/swagger-ui/index.html
+http://localhost:8080/v3/api-docs
+```
+
+Use the actual paths configured in your application properties if they differ.
+
+Swagger UI allows you to inspect endpoints, view request and response schemas, and test API calls. For protected endpoints, authenticate and provide the JWT Bearer token.
+
+## Testing
+
+The project uses JUnit 5 and Mockito for automated testing.
+
+### Run all verification checks
+
+```bash
+./mvnw clean verify
+```
+
+On Windows:
+
+```powershell
+.\mvnw.cmd clean verify
+```
+
+### Run tests only
+
+```bash
+./mvnw test
+```
+
+### Testing approach
+
+- **JUnit 5:** Executes tests and checks expected outcomes using assertions.
+- **Mockito:** Mocks dependencies, such as repositories, so service-layer logic can be tested in isolation.
+- **Unit tests:** Check business logic without requiring a live PostgreSQL connection when dependencies are mocked.
+- **Integration tests:** Where configured, validate interactions among application components and infrastructure.
+
+Test reports are generally generated under:
+
+```text
+target/surefire-reports/
+```
+
+The exact reports depend on the configured Maven testing plugins.
+
+## CI/CD with GitHub Actions
+
+The workflow is stored at:
+
+```text
+.github/workflows/springboot.yml
+```
+
+The pipeline is configured to run for the specified GitHub events and branches.
+
+Its main stages are:
+
+1. Check out the repository.
+2. Configure Java 17.
+3. Use the Maven Wrapper to build and verify the project.
+4. Configure Docker Buildx.
+5. Authenticate to Docker Hub using GitHub Actions secrets.
+6. Build the Docker image.
+7. Push the image to Docker Hub when the configured conditions are satisfied.
+
+The Maven Wrapper must have executable permission on Linux runners. The workflow can use:
+
+```bash
+chmod +x mvnw
+```
+
+### Required GitHub secrets
+
+Configure these in **GitHub → Settings → Secrets and variables → Actions** if your workflow uses them:
+
+```text
+DOCKERHUB_USERNAME
+DOCKERHUB_TOKEN
+```
+
+Use a Docker Hub access token rather than your account password.
+
+The pipeline provides automated build, test, and image-publishing steps. Automated deployment to a cloud server is a separate stage unless it has been explicitly configured in the workflow.
+
+## Configuration and Security
+
+- Keep secrets outside source control.
+- Use strong, unique database credentials.
+- Store production JWT signing secrets securely.
+- Restrict database access to the application and trusted administrators.
+- Avoid exposing PostgreSQL port `5432` to the public internet.
+- Use HTTPS for public production APIs.
+- Use a persistent database volume or a managed database for production.
+- Rotate credentials if they have been exposed or committed.
+
+## Troubleshooting
+
+### Maven Wrapper permission denied
+
+On Linux or in GitHub Actions:
+
+```bash
+chmod +x mvnw
+./mvnw clean verify
+```
+
+### Database connection failure
+
+Verify that:
+
+- PostgreSQL is running.
+- `DB_URL`, `DB_USERNAME`, and `DB_PASSWORD` are correct.
+- The database exists.
+- The application uses `localhost` for a local PostgreSQL instance or the Compose service name for a database container.
+
+### Unresolved environment variable
+
+If the application reports a JDBC URL such as `${DB_URL}`, ensure the required environment variable is available to the process running Spring Boot.
+
+### Docker Compose startup failure
+
+Inspect the logs:
+
+```bash
+docker compose ps
+docker compose logs -f
+```
+
+Check the application configuration, database health, environment variables, port mappings, and service names.
+
+## Future Improvements
+
+Potential next steps include:
+
+- Deploying the application to an Ubuntu cloud server or AWS EC2.
+- Adding HTTPS and a reverse proxy.
+- Using infrastructure as code, such as Terraform.
+- Adding health checks, centralized logging, metrics, and alerts.
+- Publishing versioned Docker image tags instead of relying only on `latest`.
+- Automating deployment verification and rollback.
+
+## Learning Outcomes
+
+This project provides hands-on experience with:
+
+- Layered backend application design.
+- REST API development and authentication.
+- Relational database integration.
+- Unit testing and dependency mocking.
+- Java build automation with Maven.
+- Docker containerization and multi-container environments.
+- CI/CD workflow configuration with GitHub Actions.
+- Container image publishing and deployment preparation.
+
+## License
+
+Add a license section if you intend to distribute the project publicly. Choose a license appropriate for your intended use.
