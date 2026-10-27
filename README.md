@@ -502,6 +502,4 @@ This project provides hands-on experience with:
 - CI/CD workflow configuration with GitHub Actions.
 - Container image publishing and deployment preparation.
 
-## License
-
-Add a license section if you intend to distribute the project publicly. Choose a license appropriate for your intended use.
+ 
